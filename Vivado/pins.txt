@@ -1,0 +1,2 @@
+E3=clk
+C12=reset

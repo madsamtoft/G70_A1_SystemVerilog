@@ -1,0 +1,4 @@
+*.DS_Store
+.Docker/
+brew_requirements
+build/
