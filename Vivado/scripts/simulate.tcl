@@ -15,18 +15,39 @@ proc simulation::run {} {
 
     set_property top $sim_top [get_filesets sim_1]
     set_property TARGET_SIMULATOR XSim [current_project]
+
+    # Do not let launch_simulation automatically run 1000 ns.
+    # Load the simulation snapshot and wait for Tcl commands.
+    set_property xsim.simulate.runtime {} [get_filesets sim_1]
+
     update_compile_order -fileset sim_1
 
     puts "Launching simulation: $sim_top"
     launch_simulation -mode behavioral
 
+    # ------------------------------------------------------------
+    # VCD
+    # ------------------------------------------------------------
+
     set vcd_file [file join $sim_dir "${project_name}.vcd"]
+
+    puts "Opening VCD: $vcd_file"
 
     open_vcd $vcd_file
     log_vcd -level 0 /*
 
+    # ------------------------------------------------------------
+    # Run
+    # ------------------------------------------------------------
+
     puts "Running simulation for $sim_time"
-    run $sim_time
+
+    # ::run is required because this procedure is simulation::run
+    ::run $sim_time
+
+    # ------------------------------------------------------------
+    # Finish
+    # ------------------------------------------------------------
 
     close_vcd
     close_sim
