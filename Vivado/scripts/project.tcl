@@ -23,6 +23,14 @@ proc project::create {} {
 
     set hdl          [cfg::hdl_language]
     set hdl_exts     [cfg::hdl_extensions]
+
+    set rtl_subdir   [expr {$hdl eq "vhd" ? "vhdl" : "sv"}]
+    set rtl_dir      [file normalize [file join [cfg::require RTL_DIR] $rtl_subdir]]
+
+    set tb_dir       [file normalize [cfg::require TB_DIR]]
+    set xdc_dir      [file normalize [cfg::require XDC_DIR]]
+    set project_dir  [file normalize [cfg::require PROJECT_DIR]]
+
     set vhdl_std     [cfg::require VHDL_STD]
 
     puts "Creating project: $project_name"
