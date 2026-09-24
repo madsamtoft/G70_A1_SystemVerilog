@@ -24,7 +24,7 @@ module gcd_tb ();
   logic [15 : 0] AB, C;
 
   // Instantiate gcd_top module and wire it up to internal signals used for testing
-  gcd_top #(
+  gcd #(
       .n(2)
   ) u_dut (
       .clk  (clk),    // The clock signal.
