@@ -27,11 +27,11 @@ end gcd;
 architecture fsmd of gcd is
 
   type state_type is (
-    op1_await,  -- Await and read first operand into reg_a
-    hs_reset,   -- Reset operand exchange handshake
-    op2_await,  -- Await and read second operand into reg_b
-    calc,       -- Calculate GCD of reg_a and reg_b
-    read_await  -- Await acknowledgement of result and reset component
+    op_a_await,    -- Await and read first operand into reg_a
+    op_a_release,  -- Reset operand exchange handshake
+    op_b_await,    -- Await and read second operand into reg_b
+    calculate,     -- calculateulate GCD of reg_a and reg_b
+    result_release -- Await acknowledgement of result and reset component
   );
 
   signal reg_a, next_reg_a, next_reg_b, reg_b : unsigned(15 downto 0);
@@ -52,40 +52,38 @@ begin
     C <= (others => '0');
 
     case state is
-        when op1_await =>
+        when op_a_await =>
           if req = '1' and ab /= (ab'range => '0') then
             next_reg_a <= ab;
-            next_state <= hs_reset;
+            next_state <= op_a_release;
           end if;
 
-        when hs_reset =>
+        when op_a_release =>
           ack <= '1';
           if req = '0' then
-            next_state <= op2_await;
+            next_state <= op_b_await;
           end if;
 
-        when op2_await =>
+        when op_b_await =>
           if req = '1' and ab /= (ab'range => '0') then
             next_reg_b <= ab;
-            next_state <= calc;
+            next_state <= calculate;
           end if;
 
-        when calc =>
+        when calculate =>
           if reg_a > reg_b then
             next_reg_a <= reg_a - reg_b;
-
           elsif reg_a < reg_b then
             next_reg_b <= reg_b - reg_a;
-
           else
-            next_state <= read_await;
+            next_state <= result_release;
           end if;
 
-        when read_await =>
+        when result_release =>
           ack <= '1';
           C <= reg_a;
           if req = '0' then
-            next_state <= op1_await;
+            next_state <= op_a_await;
           end if;
     end case;
   end process cl;
@@ -96,7 +94,7 @@ begin
   begin
     if rising_edge(clk) then
       if reset = '1' then
-        state <= op1_await;
+        state <= op_a_await;
         reg_a <= (others => '0');
         reg_b <= (others => '0');
       else

@@ -20,12 +20,12 @@ module gcd (
     output logic          ack,    // Input received / Computation is complete.
     output logic [15 : 0] C       // The result.
 );
-    typedef enum logic [1 : 0] { 
-        op1_await,
-        hs_reset,
-        op2_await,
-        calc,
-        read_await,
+    typedef enum logic [2 : 0] { 
+      op_a_await,
+      op_a_release,
+      op_b_await,
+      calculate,
+      result_release
     } state_t; // Input your own state names here
 
     shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b;
@@ -34,14 +34,65 @@ module gcd (
     
     // Combinatorial logic
     always_comb begin
-        case (state)
-            
-        endcase
+      next_reg_a = reg_a;
+      next_reg_b = reg_b;
+      next_state = state;
+      ack = 0;
+      C = 0;
+
+      case (state)
+        op_a_await: begin
+          if (req && AB != 0) begin
+            next_reg_a = AB;
+            next_state = op_a_release;
+          end
+        end
+
+        op_a_release: begin
+          ack = 1;
+          if (req == 0) begin
+            next_state = op_b_await;
+          end
+        end
+
+        op_b_await: begin
+          if (req && AB!= 0) begin
+            next_reg_b = AB;
+            next_state = calculate;
+          end
+        end
+
+        calculate: begin
+          if (reg_a > reg_b) begin
+            next_reg_a = reg_a - reg_b;
+          end else if (reg_b > reg_a) begin
+            next_reg_b = reg_b - reg_a;
+          end else begin
+            next_state = result_release;
+          end
+        end
+
+        result_release: begin
+          ack = 1;
+          C = reg_a;
+          if (req == 0) begin
+            next_state = op_a_await;
+          end
+        end
+      endcase
     end
 
-        // Register
-    always_ff @(posedge clk or posedge reset) begin
-        // <REGISTER BODY>
+    // Register
+    always_ff @(posedge clk) begin
+      if (reset) begin
+        state <= op_a_await;
+        reg_a <= 0;
+        reg_b <= 0;
+      end else begin
+        state <= next_state;
+        reg_a <= next_reg_a;
+        reg_b <= next_reg_b;
+      end
     end
 
 endmodule
