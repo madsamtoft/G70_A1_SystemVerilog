@@ -45,6 +45,7 @@ cfg::parse {*}$argv
 
 set raw_flow [cfg::require FLOW]
 set stages [regexp -all -inline {[^,[:space:]]+} $raw_flow]
+set hdl [cfg::hdl_language]
 
 if {[llength $stages] == 0} {
     error "FLOW must contain at least one stage"
@@ -70,6 +71,8 @@ set report_dir [file join $build_dir reports]
 file mkdir $build_dir
 
 set exit_code 0
+
+puts "Selected HDL: $hdl"
 
 if {[catch {
     # A flow without 'project' operates on the existing .xpr. It is opened

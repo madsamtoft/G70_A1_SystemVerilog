@@ -26,6 +26,9 @@ PROJECT_DIR  = $(BUILD_DIR)/project
 # Build settings
 # ============================================================
 
+# HDL source language: sv or vhd
+# Override from the command line, for example: make build HDL=vhd
+HDL          = sv
 VHDL_STD     = 2008
 JOBS         = 6
 

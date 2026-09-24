@@ -54,6 +54,25 @@ proc cfg::bool {name {default 0}} {
     }
 }
 
+proc cfg::hdl_language {} {
+    set language [string tolower [cfg::require HDL]]
+
+    switch -- $language {
+        sv  { return sv }
+        vhd { return vhd }
+        default {
+            error "Configuration variable HDL must be 'sv' or 'vhd', got '$language'"
+        }
+    }
+}
+
+proc cfg::hdl_extensions {} {
+    switch -- [cfg::hdl_language] {
+        sv  { return {.sv} }
+        vhd { return {.vhd .vhdl} }
+    }
+}
+
 namespace eval util {}
 
 proc util::find_files {directory extensions} {

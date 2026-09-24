@@ -21,9 +21,12 @@ proc project::create {} {
     set xdc_dir      [file normalize [cfg::require XDC_DIR]]
     set project_dir  [file normalize [cfg::require PROJECT_DIR]]
 
+    set hdl          [cfg::hdl_language]
+    set hdl_exts     [cfg::hdl_extensions]
     set vhdl_std     [cfg::require VHDL_STD]
 
     puts "Creating project: $project_name"
+    puts "Source language: $hdl ([join $hdl_exts {, }])"
 
     create_project \
         -force \
@@ -35,10 +38,10 @@ proc project::create {} {
     # Design sources
     # --------------------------------------------------------
 
-    set rtl_files [util::find_files $rtl_dir {.vhd .vhdl .v .sv}]
+    set rtl_files [util::find_files $rtl_dir $hdl_exts]
 
     if {[llength $rtl_files] == 0} {
-        error "No RTL files found in $rtl_dir"
+        error "No $hdl RTL files found in $rtl_dir (expected: [join $hdl_exts {, }])"
     }
 
     add_files \
@@ -50,7 +53,7 @@ proc project::create {} {
     # Simulation sources
     # --------------------------------------------------------
 
-    set tb_files [util::find_files $tb_dir {.vhd .vhdl .v .sv}]
+    set tb_files [util::find_files $tb_dir $hdl_exts]
 
     if {[llength $tb_files] > 0} {
         add_files \
@@ -89,7 +92,7 @@ proc project::create {} {
         }
 
         # VHDL 2008, if requested
-        if {$vhdl_std eq "20089"} {
+        if {$vhdl_std eq "2008"} {
             set vhdl_files [get_files \
                 -quiet \
                 -of_objects [get_filesets $fileset] \

@@ -27,6 +27,7 @@ FLOW_ARGS = \
 	RTL_DIR="$(RTL_DIR)" \
 	TB_DIR="$(TB_DIR)" \
 	XDC_DIR="$(XDC_DIR)" \
+	HDL="$(HDL)" \
 	VHDL_STD="$(VHDL_STD)" \
 	JOBS="$(JOBS)" \
 	PHYS_OPT="$(PHYS_OPT)" \
