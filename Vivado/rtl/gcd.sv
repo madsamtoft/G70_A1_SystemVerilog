@@ -20,7 +20,13 @@ module gcd (
     output logic          ack,    // Input received / Computation is complete.
     output logic [15 : 0] C       // The result.
 );
-    typedef enum logic [1 : 0] { ... } state_t; // Input your own state names here
+    typedef enum logic [1 : 0] { 
+        op1_await,
+        hs_reset,
+        op2_await,
+        calc,
+        read_await,
+    } state_t; // Input your own state names here
 
     shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b;
     
@@ -29,7 +35,7 @@ module gcd (
     // Combinatorial logic
     always_comb begin
         case (state)
-            // <COMBINATORIAL BODY> 
+            
         endcase
     end
 
