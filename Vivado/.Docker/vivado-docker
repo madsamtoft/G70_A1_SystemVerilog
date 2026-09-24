@@ -1,0 +1,26 @@
+#!/bin/bash
+
+DOCKER_FLAGS=(--rm)
+
+if [[ " $* " == *" -mode tcl "* ]]; then
+  DOCKER_FLAGS+=(-it)
+fi
+
+docker run "${DOCKER_FLAGS[@]}" \
+  --platform linux/amd64 \
+  --mac-address 02:42:ac:11:00:02 \
+  -e XILINXD_LICENSE_FILE=/licenses/Xilinx.lic \
+  -v "$HOME/.licenses/xilinx/Xilinx.lic:/licenses/Xilinx.lic:ro" \
+  -v vivado-2026.1:/opt/Xilinx \
+  -v vivado-2026.1-user:/root/.Xilinx \
+  -v "$PWD:/workspace" \
+  -w /workspace \
+  vivado-runtime:2026.1-rosetta \
+  bash -lc '
+    source /opt/Xilinx/2026.1/Vivado/settings64.sh
+
+    export LD_PRELOAD=/opt/udev_stub.so
+    export LD_LIBRARY_PATH=/opt/udev-stub:${LD_LIBRARY_PATH:-}
+
+    exec vivado "$@"
+  ' -- "$@"

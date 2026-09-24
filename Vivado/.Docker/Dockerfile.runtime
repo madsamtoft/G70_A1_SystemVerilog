@@ -1,0 +1,13 @@
+FROM vivado-runtime:2026.1
+
+COPY udev_stub.c /tmp/udev_stub.c
+
+RUN mkdir -p /opt/udev-stub \
+    && gcc \
+        -shared \
+        -fPIC \
+        -Wl,-soname,libudev.so.1 \
+        -o /opt/udev-stub/libudev.so.1 \
+        /tmp/udev_stub.c \
+    && ln -sf /opt/udev-stub/libudev.so.1 /opt/udev_stub.so \
+    && rm /tmp/udev_stub.c
