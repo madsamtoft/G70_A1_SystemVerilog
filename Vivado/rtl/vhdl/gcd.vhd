@@ -41,62 +41,58 @@ architecture fsmd of gcd is
 
 begin
 
-  -- Combinatoriel logic
-
+  -- Combinational next-state and datapath logic
   cl : process(all)
   begin
-    -- Register defaults
     next_reg_a <= reg_a;
     next_reg_b <= reg_b;
     next_state <= state;
 
-    -- Output defaults
     ack <= '0';
-    C   <= reg_a;
+    C <= '0';
 
     case state is
-      when op1_await =>
-        if req = '1' and ab /= (ab'range => '0') then
-          ack        <= '1';
-          next_reg_a <= ab;
-          next_state <= hs_reset;
-        end if;
+        when op1_await =>
+          if req = '1' and ab /= (ab'range => '0') then
+            next_reg_a <= ab;
+            next_state <= hs_reset;
+          end if;
 
-      when hs_reset =>
-        ack <= '1';
-        if req = '0' then
-          ack        <= '0';
-          next_state <= op2_await;
-        end if;
+        when hs_reset =>
+          ack <= '1';
+          if req = '0' then
+            next_state <= op2_await;
+          end if;
 
-      when op2_await =>
-        if req = '1' and ab /= (ab'range => '0') then
-          next_reg_b <= ab;
-          next_state <= calc;
-        end if;
+        when op2_await =>
+          if req = '1' and ab /= (ab'range => '0') then
+            next_reg_b <= ab;
+            next_state <= calc;
+          end if;
 
-      when calc =>
-        if reg_a > reg_b then
-          next_reg_a <= reg_a - reg_b;
-        elsif reg_a < reg_b then
-          next_reg_b <= reg_b - reg_a;
-        else
-          C          <= reg_a;
-          ack        <= '1';
-          next_state <= read_await;
-        end if;
+        when calc =>
+          if reg_a > reg_b then
+            next_reg_a <= reg_a - reg_b;
 
-      when read_await =>
-        ack <= '1';
-        if req = '0' then
-          ack        <= '0';
-          next_state <= op1_await;
-        end if;
+          elsif reg_a < reg_b then
+            next_reg_b <= reg_b - reg_a;
+
+          else
+            next_state <= read_await;
+          end if;
+
+        when read_await =>
+          ack <= '1';
+          C <= reg_a;
+          if req = '0' then
+            next_state <= op1_await;
+          end if;
     end case;
-  end process;
+  end process cl;
 
-  -- Registers
-  seq : process (clk)
+
+  -- State and datapath registers
+  seq : process(clk)
   begin
     if rising_edge(clk) then
       if reset = '1' then
@@ -110,6 +106,5 @@ begin
       end if;
     end if;
   end process seq;
-
 
 end fsmd;
