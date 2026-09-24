@@ -49,7 +49,7 @@ begin
     next_state <= state;
 
     ack <= '0';
-    C <= '0';
+    C <= (others => '0');
 
     case state is
         when op1_await =>
