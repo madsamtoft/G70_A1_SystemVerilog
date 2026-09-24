@@ -56,7 +56,7 @@ define RUN_FRESH_FLOW
 endef
 
 
-.PHONY: all project pins build sim full reports flash-mac flash-windows clean
+.PHONY: all project pins build sim full reports flash flash-mac flash-windows clean
 
 all: build
 
@@ -94,21 +94,26 @@ reports:
 	@find $(BUILD_DIR)/reports -type f 2>/dev/null || true
 
 
+
 # ============================================================
-# Program directly from macOS
+# Flash Device
 # ============================================================
 
-flash-mac: build
+
+ifeq ($(OS),Windows_NT)
+flash: build flash-windows 
+else 
+flash: build flash-mac 
+endif
+
+
+flash-mac: 
 	$(OPENFPGALOADER) \
 		-b $(BOARD) \
 		$(BITSTREAM)
 
 
-# ============================================================
-# Program from native Windows Vivado
-# ============================================================
-
-flash-windows: build
+flash-windows: 
 	$(VIVADO_WIN) \
 		-mode batch \
 		-nolog \
