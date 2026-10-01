@@ -46,8 +46,6 @@ module gcd (
       right = 0;
       a_larger = 0;
 
-      left
-
       case (state)
         op_a_await: begin
           if (req && AB != 0) begin
@@ -71,24 +69,27 @@ module gcd (
         end
 
         calculate: begin
+          equal = reg_a == reg_b;
           a_larger = reg_b < reg_a;
 
-          if (reg_a == reg_b) begin
+          if (equal) begin
             next_state = result_release;
           end else if (a_larger) begin
-            //next_reg_a = reg_a - reg_b;
             left = reg_a;
             right = reg_b;
           end else begin
-            //next_reg_b = reg_b - reg_a;
             left = reg_b;
             right = reg_a;
           end
 
-          res = left - right
-          if (a_larger && ) {
-            next_reg_a = res
-          } else if ()
+          if (!equal) {
+            res = left - right;
+            if (a_larger) {
+              next_reg_a = res;
+            } else {
+              next_reg_b = res;
+            }
+          }
 
         end
 
