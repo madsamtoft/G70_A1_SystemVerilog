@@ -40,6 +40,7 @@ source [file join $script_dir project.tcl]
 source [file join $script_dir generate_xdc.tcl]
 source [file join $script_dir build.tcl]
 source [file join $script_dir simulate.tcl]
+source [file join $script_dir synth_report.tcl]
 
 cfg::parse {*}$argv
 
@@ -51,7 +52,7 @@ if {[llength $stages] == 0} {
     error "FLOW must contain at least one stage"
 }
 
-set valid_stages {project pins build sim}
+set valid_stages {project pins build sim synth-report}
 
 foreach stage $stages {
     if {$stage ni $valid_stages} {
@@ -66,6 +67,12 @@ if {$project_index > 0} {
     error "The 'project' stage must be first in FLOW"
 }
 
+set synth_report_index [lsearch -exact $stages synth-report]
+if {$synth_report_index >= 0 && [llength $stages] != 1} {
+    error "'synth-report' must be used as a standalone FLOW stage"
+}
+
+
 set build_dir  [file normalize [cfg::require BUILD_DIR]]
 set report_dir [file join $build_dir reports]
 file mkdir $build_dir
@@ -77,7 +84,7 @@ puts "Selected HDL: $hdl"
 if {[catch {
     # A flow without 'project' operates on the existing .xpr. It is opened
     # once here and kept open for every requested stage.
-    if {$project_index < 0} {
+    if {$project_index < 0 && $synth_report_index < 0} {
         project::open_existing
     }
 
@@ -85,10 +92,11 @@ if {[catch {
         util::banner "FLOW: [string toupper $stage]"
 
         switch -- $stage {
-            project { project::create }
-            pins    { pins::generate }
-            build   { build::run }
-            sim     { simulation::run }
+            project      { project::create }
+            pins         { pins::generate }
+            build        { build::run }
+            sim          { simulation::run }
+            synth-report { synth_report::run }
         }
     }
 

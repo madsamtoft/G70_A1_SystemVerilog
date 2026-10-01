@@ -79,6 +79,9 @@ proc build::run {} {
             $bitstream
     }
 
+    # Write reports for the build stage.
+    reports::write [file join $build_dir reports]
+
     # Release the synthesized/implemented design but keep the project open,
     # allowing another stage (for example simulation) to run next.
     close_design

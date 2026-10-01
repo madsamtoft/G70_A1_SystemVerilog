@@ -78,6 +78,9 @@ pins:
 build:
 	$(call RUN_FRESH_FLOW,project build)
 
+synth-report:
+	$(call RUN_FRESH_FLOW,synth-report)
+
 sim:
 	$(call RUN_FRESH_FLOW,project sim)
 

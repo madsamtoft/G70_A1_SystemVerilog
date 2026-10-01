@@ -46,7 +46,8 @@ begin
 
   cl : process(all)
     variable sub_left, sub_right : unsigned(15 downto 0);
-    variable difference          : unsigned(16 downto 0);
+    variable difference          : unsigned(15 downto 0);
+    variable borrow              : std_logic;
   begin
     next_state <= state;
     next_reg_a <= reg_a;
@@ -55,6 +56,7 @@ begin
     ack <= '0';
     C   <= reg_a;
 
+    -- Select the order of the subtraction
     sub_left  := reg_a;
     sub_right := reg_b;
 
@@ -63,7 +65,14 @@ begin
       sub_right := reg_a;
     end if;
 
-    difference := resize(sub_left, 17) - resize(sub_right, 17);
+    difference := sub_left - sub_right;
+
+    -- Determine unsigned borrow using MSBs
+    if (sub_left(15) xor sub_right(15)) = '1' then
+      borrow := sub_right(15);
+    else
+      borrow := difference(15);
+    end if;
 
     case state is
       when op_a_await =>
@@ -87,14 +96,14 @@ begin
       when calculate =>
         if difference = 0 then
           next_state <= result_release;
-        elsif difference(16) = '1' then
+        elsif borrow = '1' then
           next_state <= subtract_b;
         else
-          next_reg_a <= difference(15 downto 0);
+          next_reg_a <= difference;
         end if;
 
       when subtract_b =>
-        next_reg_b <= difference(15 downto 0);
+        next_reg_b <= difference;
         next_state <= calculate;
 
       when result_release =>

@@ -33,7 +33,8 @@ module gcd (
     logic [15:0] reg_a, next_reg_a;
     logic [15:0] reg_b, next_reg_b;
     logic [15:0] sub_left, sub_right;
-    logic [16:0] difference;
+    logic [15:0] difference;
+    logic        borrow;
 
     always_comb begin
         next_state = state;
@@ -51,8 +52,10 @@ module gcd (
             sub_right = reg_a;
         end
 
-        // Extend before subtracting (bit 16 indicates an unsigned borrow)
-        difference = {1'b0, sub_left} - {1'b0, sub_right};
+        difference = sub_left - sub_right;
+
+        // Determine unsigned borrow using MSBs
+        borrow = (sub_left[15] ^ sub_right[15]) ? sub_right[15] : difference[15];
 
         case (state)
           op_a_await: begin
@@ -76,16 +79,16 @@ module gcd (
         end
 
         calculate: begin
-          if (difference == 17'd0)
+          if (difference == 16'd0)
             next_state = result_release;
-          else if (difference[16])
+          else if (borrow)
             next_state = subtract_b;
           else
-            next_reg_a = difference[15:0];
+            next_reg_a = difference;
         end
 
         subtract_b: begin
-          next_reg_b = difference[15:0];
+          next_reg_b = difference;
           next_state = calculate;
         end
 
