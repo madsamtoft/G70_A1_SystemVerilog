@@ -29,8 +29,6 @@ module gcd (
     } state_t; // Input your own state names here
 
     shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b;
-    shortint unsigned left, right;
-    logic a_larger, equal;
     
     state_t state, next_state;
     
@@ -41,12 +39,6 @@ module gcd (
       next_state = state;
       ack = 0;
       C = 0;
-
-      left = 0;
-      right = 0;
-      a_larger = 0;
-
-      left
 
       case (state)
         op_a_await: begin
@@ -71,25 +63,13 @@ module gcd (
         end
 
         calculate: begin
-          a_larger = reg_b < reg_a;
-
-          if (reg_a == reg_b) begin
-            next_state = result_release;
-          end else if (a_larger) begin
-            //next_reg_a = reg_a - reg_b;
-            left = reg_a;
-            right = reg_b;
+          if (reg_a > reg_b) begin
+            next_reg_a = reg_a - reg_b;
+          end else if (reg_b > reg_a) begin
+            next_reg_b = reg_b - reg_a;
           end else begin
-            //next_reg_b = reg_b - reg_a;
-            left = reg_b;
-            right = reg_a;
+            next_state = result_release;
           end
-
-          res = left - right
-          if (a_larger && ) {
-            next_reg_a = res
-          } else if ()
-
         end
 
         result_release: begin
