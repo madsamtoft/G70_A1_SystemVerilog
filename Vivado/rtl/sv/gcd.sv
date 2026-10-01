@@ -63,12 +63,12 @@ module gcd (
         end
 
         calculate: begin
-          if (reg_a > reg_b) begin
-            next_reg_a = reg_a - reg_b;
-          end else if (reg_b > reg_a) begin
-            next_reg_b = reg_b - reg_a;
-          end else begin
+          if (reg_a = reg_b) begin
             next_state = result_release;
+          end else if (reg_b < reg_a) begin
+            next_reg_a = reg_a - reg_b;
+          end else begin
+            next_reg_b = reg_b - reg_a;
           end
         end
 
