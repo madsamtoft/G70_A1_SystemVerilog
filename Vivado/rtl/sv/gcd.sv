@@ -28,10 +28,8 @@ module gcd (
       result_release
     } state_t; // Input your own state names here
 
-    shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b;
-    shortint unsigned left, right;
+    shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b, left, right;
     logic a_larger, equal;
-    
     state_t state, next_state;
     
     // Combinatorial logic
