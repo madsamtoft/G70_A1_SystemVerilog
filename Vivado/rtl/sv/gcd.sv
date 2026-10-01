@@ -11,88 +11,105 @@
 //
 // -----------------------------------------------------------------------------
 
-
 module gcd (
-    input  logic          clk,    // The clock signal.
-    input  logic          reset,  // Reset the module.
-    input  logic          req,    // Start computation.
-    input  logic [15 : 0] AB,     // The two operands. One at a time.
-    output logic          ack,    // Input received / Computation is complete.
-    output logic [15 : 0] C       // The result.
+    input  logic        clk,
+    input  logic        reset,
+    input  logic        req,
+    input  logic [15:0] AB,
+    output logic        ack,
+    output logic [15:0] C
 );
-    typedef enum logic [2 : 0] { 
-      op_a_await,
-      op_a_release,
-      op_b_await,
-      calculate,
-      result_release
-    } state_t; // Input your own state names here
 
-    shortint unsigned reg_a, next_reg_a, reg_b, next_reg_b;
-    
+    typedef enum logic [2:0] {
+        op_a_await,
+        op_a_release,
+        op_b_await,
+        calculate,
+        subtract_b,
+        result_release
+    } state_t;
+
     state_t state, next_state;
-    
-    // Combinatorial logic
-    always_comb begin
-      next_reg_a = reg_a;
-      next_reg_b = reg_b;
-      next_state = state;
-      ack = 0;
-      C = 0;
+    logic [15:0] reg_a, next_reg_a;
+    logic [15:0] reg_b, next_reg_b;
+    logic [15:0] sub_left, sub_right;
+    logic [16:0] difference;
 
-      case (state)
-        op_a_await: begin
-          if (req && AB != 0) begin
-            next_reg_a = AB;
-            next_state = op_a_release;
-          end
+    always_comb begin
+        next_state = state;
+        next_reg_a = reg_a;
+        next_reg_b = reg_b;
+
+        ack = 1'b0;
+        C   = reg_a;
+
+        // Select the order of the subtraction
+        sub_left  = reg_a;
+        sub_right = reg_b;
+        if (state == subtract_b) begin
+            sub_left  = reg_b;
+            sub_right = reg_a;
         end
 
-        op_a_release: begin
-          ack = 1;
-          if (req == 0) begin
-            next_state = op_b_await;
+        // Extend before subtracting (bit 16 indicates an unsigned borrow)
+        difference = {1'b0, sub_left} - {1'b0, sub_right};
+
+        case (state)
+          op_a_await: begin
+            if (req) begin
+              next_reg_a = AB;
+              next_state = op_a_release;
+            end
           end
+
+        op_a_release: begin
+          ack = 1'b1;
+          if (!req)
+            next_state = op_b_await;
         end
 
         op_b_await: begin
-          if (req && AB!= 0) begin
+          if (req) begin
             next_reg_b = AB;
             next_state = calculate;
           end
         end
 
         calculate: begin
-          if (reg_a > reg_b) begin
-            next_reg_a = reg_a - reg_b;
-          end else if (reg_b > reg_a) begin
-            next_reg_b = reg_b - reg_a;
-          end else begin
+          if (difference == 17'd0)
             next_state = result_release;
-          end
+          else if (difference[16])
+            next_state = subtract_b;
+          else
+            next_reg_a = difference[15:0];
+        end
+
+        subtract_b: begin
+          next_reg_b = difference[15:0];
+          next_state = calculate;
         end
 
         result_release: begin
-          ack = 1;
-          C = reg_a;
-          if (req == 0) begin
+          ack = 1'b1;
+          if (!req)
             next_state = op_a_await;
-          end
+        end
+
+        default: begin
+          next_state = op_a_await;
         end
       endcase
     end
 
-    // Register
-    always_ff @(posedge clk) begin
-      if (reset) begin
-        state <= op_a_await;
-        reg_a <= 0;
-        reg_b <= 0;
-      end else begin
-        state <= next_state;
-        reg_a <= next_reg_a;
-        reg_b <= next_reg_b;
-      end
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      state <= op_a_await;
+      reg_a <= 16'd0;
+      reg_b <= 16'd0;
+    end else begin
+      state <= next_state;
+      reg_a <= next_reg_a;
+      reg_b <= next_reg_b;
     end
-
+  end
 endmodule
