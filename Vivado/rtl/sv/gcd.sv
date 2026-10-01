@@ -39,10 +39,12 @@ module gcd (
       next_state = state;
       ack = 0;
       C = 0;
-
       left = 0;
       right = 0;
-      a_larger = 0;
+      
+      equal = reg_a == reg_b;
+      a_larger = reg_b < reg_a;
+
 
       case (state)
         op_a_await: begin
@@ -67,8 +69,6 @@ module gcd (
         end
 
         calculate: begin
-          equal = reg_a == reg_b;
-          a_larger = reg_b < reg_a;
 
           if (equal) begin
             next_state = result_release;
